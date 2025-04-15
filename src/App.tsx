@@ -1,97 +1,40 @@
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { Toaster } from "./components/ui/sonner";
+import MainLayout from "./components/layout/MainLayout";
 import Dashboard from "./pages/Dashboard";
 import LeadsPage from "./pages/LeadsPage";
-import TasksPage from "./pages/TasksPage";
-import AnalyticsPage from "./pages/AnalyticsPage";
-import CampaignsPage from "./pages/CampaignsPage";
 import LeadProfilePage from "./pages/LeadProfilePage";
-import NotFound from "./pages/NotFound";
-import { MainLayout } from "./components/layout/MainLayout";
+import LeadInteractionsPage from "./pages/LeadInteractionsPage";
 import CalendarPage from "./pages/CalendarPage";
+import CampaignsPage from "./pages/CampaignsPage";
+import AnalyticsPage from "./pages/AnalyticsPage";
+import TasksPage from "./pages/TasksPage";
 import SettingsPage from "./pages/SettingsPage";
+import AdminPage from "./pages/AdminPage";
+import NotFound from "./pages/NotFound";
 
-const queryClient = new QueryClient();
-
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
+function App() {
+  return (
+    <Router>
+      <MainLayout>
         <Routes>
-          <Route 
-            path="/" 
-            element={
-              <MainLayout>
-                <Dashboard />
-              </MainLayout>
-            } 
-          />
-          <Route 
-            path="/leads" 
-            element={
-              <MainLayout>
-                <LeadsPage />
-              </MainLayout>
-            } 
-          />
-          <Route 
-            path="/leads/:id" 
-            element={
-              <MainLayout>
-                <LeadProfilePage />
-              </MainLayout>
-            } 
-          />
-          <Route 
-            path="/tasks" 
-            element={
-              <MainLayout>
-                <TasksPage />
-              </MainLayout>
-            } 
-          />
-          <Route 
-            path="/campaigns" 
-            element={
-              <MainLayout>
-                <CampaignsPage />
-              </MainLayout>
-            } 
-          />
-          <Route 
-            path="/analytics" 
-            element={
-              <MainLayout>
-                <AnalyticsPage />
-              </MainLayout>
-            } 
-          />
-          <Route 
-            path="/calendar" 
-            element={
-              <MainLayout>
-                <CalendarPage />
-              </MainLayout>
-            } 
-          />
-          <Route 
-            path="/settings" 
-            element={
-              <MainLayout>
-                <SettingsPage />
-              </MainLayout>
-            } 
-          />
+          <Route path="/" element={<Dashboard />} />
+          <Route path="/leads" element={<LeadsPage />} />
+          <Route path="/leads/:id" element={<LeadProfilePage />} />
+          <Route path="/leads/:id/interactions" element={<LeadInteractionsPage />} />
+          <Route path="/calendar" element={<CalendarPage />} />
+          <Route path="/campaigns" element={<CampaignsPage />} />
+          <Route path="/analytics" element={<AnalyticsPage />} />
+          <Route path="/tasks" element={<TasksPage />} />
+          <Route path="/admin" element={<AdminPage />} />
+          <Route path="/settings" element={<SettingsPage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+      </MainLayout>
+      <Toaster />
+    </Router>
+  );
+}
 
 export default App;
