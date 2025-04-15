@@ -11,6 +11,8 @@ import CampaignsPage from "./pages/CampaignsPage";
 import LeadProfilePage from "./pages/LeadProfilePage";
 import NotFound from "./pages/NotFound";
 import { MainLayout } from "./components/layout/MainLayout";
+import CalendarPage from "./pages/CalendarPage";
+import SettingsPage from "./pages/SettingsPage";
 
 const queryClient = new QueryClient();
 
@@ -66,6 +68,22 @@ const App = () => (
             element={
               <MainLayout>
                 <AnalyticsPage />
+              </MainLayout>
+            } 
+          />
+          <Route 
+            path="/calendar" 
+            element={
+              <MainLayout>
+                <CalendarPage />
+              </MainLayout>
+            } 
+          />
+          <Route 
+            path="/settings" 
+            element={
+              <MainLayout>
+                <SettingsPage />
               </MainLayout>
             } 
           />
