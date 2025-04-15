@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -69,7 +70,8 @@ export default {
 						900: '#4c1d95',
 					},
 					dark: '#1A1F2C',
-					charcoal: '#221F26',
+					charcoal: '#221F26'
+				},
 				sidebar: {
 					DEFAULT: 'hsl(var(--sidebar-background))',
 					foreground: 'hsl(var(--sidebar-foreground))',
