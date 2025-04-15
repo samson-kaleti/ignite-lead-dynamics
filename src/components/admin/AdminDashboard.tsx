@@ -3,7 +3,26 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { LineChart, BarChart, PieChart } from "@/components/ui/chart";
+import { 
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent 
+} from "@/components/ui/chart";
+import {
+  LineChart,
+  Line,
+  BarChart, 
+  Bar,
+  PieChart,
+  Pie,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  Cell
+} from "recharts";
 import { 
   Users, 
   Target, 
@@ -140,7 +159,32 @@ export function AdminDashboard() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <LineChart data={monthlyPerformanceData} />
+            <ResponsiveContainer width="100%" height={300}>
+              <LineChart data={monthlyPerformanceData.labels.map((month, index) => ({
+                month,
+                target: monthlyPerformanceData.datasets[0].data[index],
+                actual: monthlyPerformanceData.datasets[1].data[index]
+              }))}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="month" />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                <Line 
+                  type="monotone" 
+                  dataKey="target" 
+                  stroke="#F97316" 
+                  strokeDasharray="5 5" 
+                  activeDot={{ r: 8 }} 
+                />
+                <Line 
+                  type="monotone" 
+                  dataKey="actual" 
+                  stroke="#2563EB" 
+                  activeDot={{ r: 8 }} 
+                />
+              </LineChart>
+            </ResponsiveContainer>
           </CardContent>
         </Card>
         
@@ -152,7 +196,28 @@ export function AdminDashboard() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <PieChart data={teamPerformanceData} />
+            <ResponsiveContainer width="100%" height={300}>
+              <PieChart>
+                <Pie
+                  data={teamPerformanceData.labels.map((team, index) => ({
+                    name: team,
+                    value: teamPerformanceData.datasets[0].data[index]
+                  }))}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  outerRadius={80}
+                  fill="#8884d8"
+                  dataKey="value"
+                  label={({name, percent}) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                >
+                  {teamPerformanceData.labels.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={teamPerformanceData.datasets[0].backgroundColor[index]} />
+                  ))}
+                </Pie>
+                <Tooltip formatter={(value) => formatCurrency(value as number)} />
+              </PieChart>
+            </ResponsiveContainer>
           </CardContent>
         </Card>
       </div>

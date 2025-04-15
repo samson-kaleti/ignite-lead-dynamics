@@ -5,9 +5,15 @@ interface LeadScoreIndicatorProps {
   score: number;
   showText?: boolean;
   className?: string;
+  size?: 'small' | 'medium' | 'large';
 }
 
-export function LeadScoreIndicator({ score, showText = true, className }: LeadScoreIndicatorProps) {
+export function LeadScoreIndicator({ 
+  score, 
+  showText = true, 
+  className,
+  size = 'medium' 
+}: LeadScoreIndicatorProps) {
   // Determine color based on score
   const getScoreColor = () => {
     if (score >= 80) return "bg-green-500";
@@ -15,9 +21,22 @@ export function LeadScoreIndicator({ score, showText = true, className }: LeadSc
     return "bg-red-500";
   };
 
+  // Determine size classes
+  const getSizeClass = () => {
+    switch (size) {
+      case 'small':
+        return "h-1";
+      case 'large':
+        return "h-3";
+      case 'medium':
+      default:
+        return "h-2";
+    }
+  };
+
   return (
     <div className={cn("flex items-center gap-2", className)}>
-      <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+      <div className={cn("w-full bg-gray-200 rounded-full overflow-hidden", getSizeClass())}>
         <div 
           className={cn("h-full rounded-full", getScoreColor())}
           style={{ width: `${score}%` }}
