@@ -110,9 +110,9 @@ export default function Dashboard() {
         
         <Card className="col-span-4">
           <CardHeader>
-            <Tabs defaultValue="calls">
-              <div className="flex items-center justify-between">
-                <CardTitle>Today's Tasks</CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle>Today's Tasks</CardTitle>
+              <Tabs defaultValue="calls">
                 <TabsList>
                   <TabsTrigger value="calls">
                     <PhoneCall className="h-4 w-4 mr-2" />
@@ -127,35 +127,36 @@ export default function Dashboard() {
                     Follow-ups
                   </TabsTrigger>
                 </TabsList>
-              </div>
-            </Tabs>
-          </CardHeader>
-          <CardContent>
-            <TabsContent value="calls" className="mt-0">
-              <div className="space-y-4">
-                {[1, 2, 3].map((i) => (
-                  <div key={i} className="flex items-center gap-4 rounded-lg border p-3">
-                    <div className="flex-1">
-                      <div className="font-medium">Call with Jane Smith</div>
-                      <div className="text-sm text-gray-500">Today, 2:00 PM</div>
+              
+                <CardContent>
+                  <TabsContent value="calls" className="mt-0">
+                    <div className="space-y-4">
+                      {[1, 2, 3].map((i) => (
+                        <div key={i} className="flex items-center gap-4 rounded-lg border p-3">
+                          <div className="flex-1">
+                            <div className="font-medium">Call with Jane Smith</div>
+                            <div className="text-sm text-gray-500">Today, 2:00 PM</div>
+                          </div>
+                          <Button variant="outline" size="sm">Reschedule</Button>
+                          <Button size="sm">Call</Button>
+                        </div>
+                      ))}
                     </div>
-                    <Button variant="outline" size="sm">Reschedule</Button>
-                    <Button size="sm">Call</Button>
-                  </div>
-                ))}
-              </div>
-            </TabsContent>
-            <TabsContent value="emails" className="mt-0">
-              <div className="p-8 text-center text-muted-foreground">
-                No email tasks scheduled for today
-              </div>
-            </TabsContent>
-            <TabsContent value="follow-ups" className="mt-0">
-              <div className="p-8 text-center text-muted-foreground">
-                No follow-ups scheduled for today
-              </div>
-            </TabsContent>
-          </CardContent>
+                  </TabsContent>
+                  <TabsContent value="emails" className="mt-0">
+                    <div className="p-8 text-center text-muted-foreground">
+                      No email tasks scheduled for today
+                    </div>
+                  </TabsContent>
+                  <TabsContent value="follow-ups" className="mt-0">
+                    <div className="p-8 text-center text-muted-foreground">
+                      No follow-ups scheduled for today
+                    </div>
+                  </TabsContent>
+                </CardContent>
+              </Tabs>
+            </div>
+          </CardHeader>
         </Card>
       </div>
     </div>
