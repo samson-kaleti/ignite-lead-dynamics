@@ -1,5 +1,6 @@
 
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { 
@@ -193,6 +194,7 @@ export default function LeadsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const navigate = useNavigate();
 
   // Filter leads based on search term and status
   const filteredLeads = leads.filter((lead) => {
@@ -205,6 +207,10 @@ export default function LeadsPage() {
     
     return matchesSearch && matchesStatus;
   });
+
+  const handleLeadClick = (leadId: string) => {
+    navigate(`/leads/${leadId}`);
+  };
 
   return (
     <div className="space-y-6">
@@ -281,7 +287,11 @@ export default function LeadsPage() {
           </TableHeader>
           <TableBody>
             {filteredLeads.map((lead) => (
-              <TableRow key={lead.id}>
+              <TableRow 
+                key={lead.id} 
+                className="cursor-pointer hover:bg-gray-50"
+                onClick={() => handleLeadClick(lead.id)}
+              >
                 <TableCell>
                   <div className="flex items-center gap-3">
                     <Avatar>
@@ -304,7 +314,7 @@ export default function LeadsPage() {
                   <LeadScoreIndicator score={lead.score} />
                 </TableCell>
                 <TableCell>{lead.lastContact}</TableCell>
-                <TableCell>
+                <TableCell onClick={(e) => e.stopPropagation()}>
                   <div className="flex items-center gap-1">
                     <Button variant="ghost" size="icon" className="h-8 w-8">
                       <Mail className="h-4 w-4" />
