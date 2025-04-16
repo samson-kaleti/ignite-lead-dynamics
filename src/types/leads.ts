@@ -28,3 +28,15 @@ export interface LeadInteraction {
   created_at: string;
   updated_at: string;
 }
+
+export interface LeadJourneyEvent {
+  id: string;
+  lead_id: string;
+  event_type: 'Status Change' | 'Score Change' | 'Assignment';
+  previous_value?: string;
+  new_value: string;
+  changed_by: string;
+  changed_at: string;
+}
+
+export type SalesRole = 'Sales Manager' | 'Sales Team Lead' | 'Sales Person';
