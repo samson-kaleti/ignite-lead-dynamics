@@ -1,106 +1,26 @@
-
 import { useState } from "react";
 import { useParams } from "react-router-dom";
-import { 
-  Card, 
-  CardContent, 
-  CardHeader, 
-  CardTitle,
-  CardDescription 
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
-import { 
-  ArrowLeft, 
-  Plus, 
-  Clock, 
-  Calendar,
-  PhoneCall,
-  Video,
-  Mail,
-  MessageSquare,
-  BarChart2,
-  DollarSign,
-  ArrowUpRight
-} from "lucide-react";
+import { format } from "date-fns";
+import { ArrowLeft, Plus, Calendar, Clock, PhoneCall, Video, Mail, MessageSquare } from "lucide-react";
 import { LeadInteraction } from "@/components/leads/LeadInteraction";
-import { LeadScoring } from "@/components/leads/LeadScoring";
-import { LeadCostEstimation } from "@/components/leads/LeadCostEstimation";
+import { useLeadInteractions } from "@/hooks/useLeadInteractions";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
+import { Lead } from "@/types/leads";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { LeadScoreIndicator } from "@/components/leads/LeadScoreIndicator";
-
-// Mock data for lead interactions
-const mockInteractions = [
-  {
-    id: "1",
-    type: "Call",
-    title: "Initial Discovery Call",
-    description: "Discussed project requirements and timeline. Client is interested in our enterprise solution.",
-    date: new Date(2023, 9, 15, 14, 30),
-    nextMeetingDate: new Date(2023, 9, 22, 10, 0),
-    createdAt: new Date(2023, 9, 15, 15, 45),
-    createdBy: "John Doe",
-  },
-  {
-    id: "2",
-    type: "Email",
-    title: "Sent Requirements Document",
-    description: "Emailed the detailed requirements document and pricing information as requested during our call.",
-    date: new Date(2023, 9, 16, 9, 15),
-    nextMeetingDate: null,
-    createdAt: new Date(2023, 9, 16, 9, 20),
-    createdBy: "John Doe",
-  },
-  {
-    id: "3",
-    type: "Video",
-    title: "Product Demo Meeting",
-    description: "Conducted a product demonstration via Google Meet. The client had questions about specific features and integration capabilities.",
-    date: new Date(2023, 9, 22, 10, 0),
-    nextMeetingDate: new Date(2023, 9, 29, 14, 0),
-    createdAt: new Date(2023, 9, 22, 11, 15),
-    createdBy: "Sarah Johnson",
-  },
-  {
-    id: "4",
-    type: "Meeting",
-    title: "Contract Discussion",
-    description: "Met with the client's legal team to discuss contract terms. They requested some modifications to the SLA.",
-    date: new Date(2023, 9, 29, 14, 0),
-    nextMeetingDate: new Date(2023, 10, 5, 11, 0),
-    createdAt: new Date(2023, 9, 29, 16, 30),
-    createdBy: "John Doe",
-  },
-];
-
-// Mock lead data
-const mockLead = {
-  id: "123",
-  name: "James Cooper",
-  company: "Acme Inc",
-  title: "CTO",
-  email: "james@acme.com",
-  phone: "+1 (555) 123-4567",
-  status: "Qualified",
-  source: "Website",
-  score: 78,
-  estimatedCost: "45000",
-  currency: "USD",
-  assignedTo: "John Doe",
-  createdAt: new Date(2023, 9, 10),
-};
 
 const getInteractionIcon = (type: string) => {
   switch (type) {
     case "Call":
       return <PhoneCall className="h-5 w-5" />;
-    case "Video":
-      return <Video className="h-5 w-5" />;
-    case "Email":
-      return <Mail className="h-5 w-5" />;
     case "Meeting":
+      return <Calendar className="h-5 w-5" />;
+    case "In Person":
       return <Calendar className="h-5 w-5" />;
     default:
       return <MessageSquare className="h-5 w-5" />;
@@ -122,24 +42,34 @@ const getInteractionColor = (type: string) => {
   }
 };
 
-const formatDate = (date: Date) => {
+const formatDate = (date: string) => {
   return new Intl.DateTimeFormat('en-US', {
     year: 'numeric',
     month: 'short',
     day: 'numeric',
     hour: '2-digit',
     minute: '2-digit',
-  }).format(date);
+  }).format(new Date(date));
 };
 
 export default function LeadInteractionsPage() {
-  const { id } = useParams<{ id: string }>();
-  const [interactions, setInteractions] = useState(mockInteractions);
+  const { id = '' } = useParams<{ id: string }>();
   const [isInteractionDialogOpen, setIsInteractionDialogOpen] = useState(false);
+  const { interactions, isLoading } = useLeadInteractions(id);
   
-  const handleAddInteraction = (newInteraction: any) => {
-    setInteractions([newInteraction, ...interactions]);
-  };
+  const { data: lead } = useQuery({
+    queryKey: ['lead', id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('leads')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (error) throw error;
+      return data as Lead;
+    },
+  });
 
   return (
     <div className="space-y-6">
@@ -158,14 +88,16 @@ export default function LeadInteractionsPage() {
             <CardHeader>
               <div className="flex items-center gap-3">
                 <Avatar className="h-12 w-12">
-                  <AvatarImage src={`https://avatar.vercel.sh/${mockLead.email}`} alt={mockLead.name} />
+                  {lead?.email ? (
+                    <AvatarImage src={`https://avatar.vercel.sh/${lead?.email}`} alt={lead?.name} />
+                  ) : null}
                   <AvatarFallback>
-                    {mockLead.name.split(' ').map(n => n[0]).join('')}
+                    {lead?.name?.split(' ').map(n => n[0]).join('')}
                   </AvatarFallback>
                 </Avatar>
                 <div>
-                  <CardTitle>{mockLead.name}</CardTitle>
-                  <CardDescription>{mockLead.title} at {mockLead.company}</CardDescription>
+                  <CardTitle>{lead?.name}</CardTitle>
+                  <CardDescription>{lead?.title} at {lead?.company}</CardDescription>
                 </div>
               </div>
             </CardHeader>
@@ -173,67 +105,22 @@ export default function LeadInteractionsPage() {
               <div className="space-y-4">
                 <div className="flex justify-between items-center">
                   <div className="text-sm font-medium">Status</div>
-                  <Badge>{mockLead.status}</Badge>
+                  <Badge>{lead?.status}</Badge>
                 </div>
                 
                 <div className="flex justify-between items-center">
                   <div className="text-sm font-medium">Score</div>
-                  <LeadScoreIndicator score={mockLead.score} />
+                  <LeadScoreIndicator score={lead?.score} />
                 </div>
                 
                 <div className="flex justify-between items-center">
                   <div className="text-sm font-medium">Source</div>
-                  <div className="text-sm">{mockLead.source}</div>
+                  <div className="text-sm">{lead?.source}</div>
                 </div>
                 
                 <div className="flex justify-between items-center">
                   <div className="text-sm font-medium">Assigned To</div>
-                  <div className="text-sm">{mockLead.assignedTo}</div>
-                </div>
-                
-                <div className="border-t pt-4 mt-4">
-                  <div className="text-sm font-medium mb-2">Contact Info</div>
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2 text-sm">
-                      <Mail className="h-4 w-4 text-gray-500" />
-                      <a href={`mailto:${mockLead.email}`} className="text-primary underline">
-                        {mockLead.email}
-                      </a>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm">
-                      <PhoneCall className="h-4 w-4 text-gray-500" />
-                      <a href={`tel:${mockLead.phone}`} className="text-primary underline">
-                        {mockLead.phone}
-                      </a>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="border-t pt-4 mt-4">
-                  <div className="text-sm font-medium mb-2">Estimated Cost</div>
-                  <div className="text-xl font-bold">
-                    {new Intl.NumberFormat('en-US', {
-                      style: 'currency',
-                      currency: mockLead.currency,
-                      minimumFractionDigits: 0,
-                      maximumFractionDigits: 0
-                    }).format(Number(mockLead.estimatedCost))}
-                  </div>
-                </div>
-                
-                <div className="flex flex-col gap-2 pt-4">
-                  <Button className="w-full">
-                    <PhoneCall className="h-4 w-4 mr-2" />
-                    Call
-                  </Button>
-                  <Button variant="outline" className="w-full">
-                    <Mail className="h-4 w-4 mr-2" />
-                    Email
-                  </Button>
-                  <Button variant="outline" className="w-full">
-                    <Video className="h-4 w-4 mr-2" />
-                    Schedule Meeting
-                  </Button>
+                  <div className="text-sm">{lead?.assigned_to}</div>
                 </div>
               </div>
             </CardContent>
@@ -253,16 +140,19 @@ export default function LeadInteractionsPage() {
                 </DialogTrigger>
                 <DialogContent className="sm:max-w-[600px]">
                   <LeadInteraction 
-                    leadId={id || "123"} 
+                    leadId={id} 
                     onClose={() => setIsInteractionDialogOpen(false)}
-                    onInteractionAdded={handleAddInteraction}
                   />
                 </DialogContent>
               </Dialog>
             </CardHeader>
             <CardContent>
               <div className="space-y-6">
-                {interactions.length === 0 ? (
+                {isLoading ? (
+                  <div className="flex items-center justify-center py-8">
+                    <div className="text-center text-gray-500">Loading interactions...</div>
+                  </div>
+                ) : interactions?.length === 0 ? (
                   <div className="flex flex-col items-center justify-center py-12 text-center">
                     <Calendar className="h-12 w-12 text-gray-400 mb-4" />
                     <h3 className="text-lg font-medium">No interactions yet</h3>
@@ -276,10 +166,9 @@ export default function LeadInteractionsPage() {
                   </div>
                 ) : (
                   <div className="relative">
-                    {/* Timeline line */}
                     <div className="absolute left-4 top-6 bottom-0 w-0.5 bg-gray-200" />
                     
-                    {interactions.map((interaction, index) => (
+                    {interactions?.map((interaction) => (
                       <div key={interaction.id} className="relative mb-8 pl-12">
                         {/* Timeline dot */}
                         <div className={`absolute left-0 top-0 rounded-full p-2 ${getInteractionColor(interaction.type)}`}>
@@ -299,23 +188,23 @@ export default function LeadInteractionsPage() {
                               </div>
                             </div>
                             <Button variant="ghost" size="sm">
-                              <ArrowUpRight className="h-4 w-4" />
+                              <ArrowLeft className="h-4 w-4" />
                             </Button>
                           </div>
                           
                           <p className="text-gray-700 mb-4">{interaction.description}</p>
                           
-                          {interaction.nextMeetingDate && (
+                          {interaction.next_meeting_date && (
                             <div className="flex items-center gap-2 text-sm bg-secondary p-2 rounded">
                               <Calendar className="h-4 w-4 text-primary" />
-                              <span>Next meeting: {formatDate(interaction.nextMeetingDate)}</span>
+                              <span>Next meeting: {formatDate(interaction.next_meeting_date)}</span>
                             </div>
                           )}
                           
                           <div className="flex items-center gap-2 mt-4 pt-3 border-t text-xs text-gray-500">
-                            <span>Recorded by {interaction.createdBy}</span>
+                            <span>Recorded by {interaction.created_by}</span>
                             <span>•</span>
-                            <span>{formatDate(interaction.createdAt)}</span>
+                            <span>{formatDate(interaction.created_at)}</span>
                           </div>
                         </div>
                       </div>
@@ -326,11 +215,6 @@ export default function LeadInteractionsPage() {
             </CardContent>
           </Card>
         </div>
-      </div>
-      
-      <div className="grid grid-cols-2 gap-6">
-        <LeadScoring initialScore={mockLead.score} readOnly />
-        <LeadCostEstimation initialCost={mockLead.estimatedCost} readOnly />
       </div>
     </div>
   );

@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -31,60 +30,48 @@ import {
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
+import { useLeadInteractions } from "@/hooks/useLeadInteractions";
 
 const interactionFormSchema = z.object({
-  type: z.string().min(1, { message: "Please select an interaction type." }),
+  type: z.enum(['Call', 'Meeting', 'In Person'], {
+    required_error: "Please select an interaction type.",
+  }),
   title: z.string().min(2, { message: "Title must be at least 2 characters." }),
   description: z.string().min(1, { message: "Description is required." }),
   date: z.date({ required_error: "Interaction date is required." }),
-  nextMeetingDate: z.date().optional(),
+  next_meeting_date: z.date().optional(),
 });
 
 type InteractionFormValues = z.infer<typeof interactionFormSchema>;
 
-const defaultValues: Partial<InteractionFormValues> = {
-  type: "",
-  title: "",
-  description: "",
-};
-
 interface LeadInteractionProps {
   leadId: string;
   onClose: () => void;
-  onInteractionAdded: (interaction: any) => void;
 }
 
-export function LeadInteraction({ leadId, onClose, onInteractionAdded }: LeadInteractionProps) {
-  const [isSubmitting, setIsSubmitting] = useState(false);
+export function LeadInteraction({ leadId, onClose }: LeadInteractionProps) {
+  const { addInteraction, isAdding } = useLeadInteractions(leadId);
 
   const form = useForm<InteractionFormValues>({
     resolver: zodResolver(interactionFormSchema),
-    defaultValues,
+    defaultValues: {
+      type: undefined,
+      title: "",
+      description: "",
+    },
   });
 
   function onSubmit(data: InteractionFormValues) {
-    setIsSubmitting(true);
-    
-    // Create a new interaction object
-    const newInteraction = {
-      id: Date.now().toString(),
-      leadId,
+    addInteraction({
+      lead_id: leadId,
       type: data.type,
       title: data.title,
       description: data.description,
-      date: data.date,
-      nextMeetingDate: data.nextMeetingDate,
-      createdAt: new Date(),
-      createdBy: "Current User", // In a real app, this would come from auth context
-    };
-    
-    // Simulate API call
-    setTimeout(() => {
-      console.log("Interaction submitted:", newInteraction);
-      setIsSubmitting(false);
-      onInteractionAdded(newInteraction);
-      onClose();
-    }, 1000);
+      date: data.date.toISOString(),
+      next_meeting_date: data.next_meeting_date?.toISOString(),
+      created_by: "Current User", // In a real app, this would come from auth context
+    });
+    onClose();
   }
 
   return (
@@ -109,11 +96,8 @@ export function LeadInteraction({ leadId, onClose, onInteractionAdded }: LeadInt
                   </FormControl>
                   <SelectContent>
                     <SelectItem value="Call">Phone Call</SelectItem>
-                    <SelectItem value="Meeting">In-Person Meeting</SelectItem>
-                    <SelectItem value="Video">Video Call (Google Meet, Zoom, etc.)</SelectItem>
-                    <SelectItem value="Email">Email</SelectItem>
-                    <SelectItem value="Chat">Chat/Message</SelectItem>
-                    <SelectItem value="Other">Other</SelectItem>
+                    <SelectItem value="Meeting">Meeting</SelectItem>
+                    <SelectItem value="In Person">In Person</SelectItem>
                   </SelectContent>
                 </Select>
                 <FormMessage />
@@ -195,7 +179,7 @@ export function LeadInteraction({ leadId, onClose, onInteractionAdded }: LeadInt
             
             <FormField
               control={form.control}
-              name="nextMeetingDate"
+              name="next_meeting_date"
               render={({ field }) => (
                 <FormItem className="flex flex-col">
                   <FormLabel>Next Meeting Date (Optional)</FormLabel>
@@ -237,8 +221,8 @@ export function LeadInteraction({ leadId, onClose, onInteractionAdded }: LeadInt
             <Button variant="outline" type="button" onClick={onClose}>
               Cancel
             </Button>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Saving..." : "Save Interaction"}
+            <Button type="submit" disabled={isAdding}>
+              {isAdding ? "Saving..." : "Save Interaction"}
             </Button>
           </div>
         </form>
